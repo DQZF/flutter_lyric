@@ -167,7 +167,7 @@ class LyricReaderState extends State<LyricsReader>
     var animate = Tween<double>(
       begin: lyricPaint.lyricOffset,
       end: offset,
-    ).chain(CurveTween(curve: Curves.easeInOut)).animate(_lineController!)
+    ).chain(CurveTween(curve: Curves.linear)).animate(_lineController!)
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           disposeLine();
