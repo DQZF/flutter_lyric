@@ -161,7 +161,7 @@ class LyricReaderState extends State<LyricsReader>
   void animationOffset(double offset) {
     disposeLine();
     _lineController = AnimationController(
-      duration: Duration(milliseconds: 100),
+      duration: Duration(milliseconds: 1000),
       vsync: this,
     );
     var animate = Tween<double>(
