@@ -47,8 +47,7 @@ class LyricsReader extends StatefulWidget {
   }) : ui = lyricUi ?? UINetease();
 }
 
-class LyricReaderState extends State<LyricsReader>
-    with TickerProviderStateMixin {
+class LyricReaderState extends State<LyricsReader> with TickerProviderStateMixin {
   late LyricsReaderPaint lyricPaint;
 
   StreamController<int> centerLyricIndexStream = StreamController.broadcast();
@@ -132,8 +131,7 @@ class LyricReaderState extends State<LyricsReader>
   ///select current play line
   void scrollToPlayLine([bool animation = true]) {
     safeLyricOffset(
-        widget.model?.computeScroll(
-                lyricPaint.playingIndex, lyricPaint.playingIndex, widget.ui) ??
+        widget.model?.computeScroll(lyricPaint.playingIndex, lyricPaint.playingIndex, widget.ui) ??
             0,
         animation);
   }
@@ -160,8 +158,14 @@ class LyricReaderState extends State<LyricsReader>
   ///update progress use animation
   void animationOffset(double offset) {
     disposeLine();
+
+    /// 设置换行速度，减少文字抖动
+    final offsetDiff = (offset - lyricPaint.lyricOffset).abs();
+    if (offsetDiff < .1) return;
+    final milliseconds = (offsetDiff * 25).toInt();
+
     _lineController = AnimationController(
-      duration: Duration(milliseconds: 1000),
+      duration: Duration(milliseconds: milliseconds),
       vsync: this,
     );
     var animate = Tween<double>(
@@ -186,18 +190,14 @@ class LyricReaderState extends State<LyricsReader>
     lyricPaint.clearCache();
     widget.model?.lyrics.forEach((element) {
       var drawInfo = LyricDrawInfo()
-        ..playingExtTextPainter = getTextPaint(
-            element.extText, widget.ui.getPlayingExtTextStyle(),
-            size: size)
-        ..otherExtTextPainter = getTextPaint(
-            element.extText, widget.ui.getOtherExtTextStyle(),
-            size: size)
-        ..playingMainTextPainter = getTextPaint(
-            element.mainText, widget.ui.getPlayingMainTextStyle(),
-            size: size)
-        ..otherMainTextPainter = getTextPaint(
-            element.mainText, widget.ui.getOtherMainTextStyle(),
-            size: size);
+        ..playingExtTextPainter =
+            getTextPaint(element.extText, widget.ui.getPlayingExtTextStyle(), size: size)
+        ..otherExtTextPainter =
+            getTextPaint(element.extText, widget.ui.getOtherExtTextStyle(), size: size)
+        ..playingMainTextPainter =
+            getTextPaint(element.mainText, widget.ui.getPlayingMainTextStyle(), size: size)
+        ..otherMainTextPainter =
+            getTextPaint(element.mainText, widget.ui.getOtherMainTextStyle(), size: size);
       if (widget.ui.enableHighlight()) {
         setTextInlineInfo(drawInfo, widget.ui, element.mainText!);
         setTextSpanDrawInfo(
@@ -212,8 +212,7 @@ class LyricReaderState extends State<LyricsReader>
   }
 
   /// 获取文本高度
-  TextPainter getTextPaint(String? text, TextStyle style,
-      {Size? size, TextPainter? linePaint}) {
+  TextPainter getTextPaint(String? text, TextStyle style, {Size? size, TextPainter? linePaint}) {
     if (text == null) text = "";
     if (linePaint == null) {
       linePaint = TextPainter(
@@ -257,9 +256,7 @@ class LyricReaderState extends State<LyricsReader>
         default:
           break;
       }
-      var end = linePaint
-          .getPositionForOffset(Offset(offsetX, targetLineHeight))
-          .offset;
+      var end = linePaint.getPositionForOffset(Offset(offsetX, targetLineHeight)).offset;
       var lineText = text.substring(start, end);
       LyricsLog.logD("获取行内信息：第${element.lineNumber}行，内容：$lineText");
       lineList.add(LyricInlineDrawInfo()
@@ -287,9 +284,7 @@ class LyricReaderState extends State<LyricsReader>
     return buildTouchReader(Stack(
       children: [
         buildReaderWidget(),
-        if (widget.selectLineBuilder != null &&
-            isShowSelectLineWidget &&
-            lyricPaint.centerY != 0)
+        if (widget.selectLineBuilder != null && isShowSelectLineWidget && lyricPaint.centerY != 0)
           buildSelectLineWidget()
       ],
     ));
@@ -307,8 +302,8 @@ class LyricReaderState extends State<LyricsReader>
                 if (lyricPaint.model.isNullOrEmpty) {
                   return Container();
                 }
-                return widget.selectLineBuilder!.call(
-                    lyricPaint.model?.lyrics[centerIndex].startTime ?? 0, () {
+                return widget.selectLineBuilder!
+                    .call(lyricPaint.model?.lyrics[centerIndex].startTime ?? 0, () {
                   setSelectLine(false);
                   disposeFiling();
                   disposeSelectLineDelay();
@@ -366,8 +361,7 @@ class LyricReaderState extends State<LyricsReader>
         disposeSelectLineDelay();
         setSelectLine(true);
       },
-      onVerticalDragUpdate: (event) =>
-          {lyricPaint.lyricOffset += event.primaryDelta ?? 0},
+      onVerticalDragUpdate: (event) => {lyricPaint.lyricOffset += event.primaryDelta ?? 0},
       child: child,
     );
   }
@@ -386,8 +380,7 @@ class LyricReaderState extends State<LyricsReader>
         }
       })
       ..addStatusListener((status) {
-        if (status == AnimationStatus.completed ||
-            status == AnimationStatus.dismissed) {
+        if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
           disposeFiling();
           resumeSelectLineOffset();
         }
@@ -408,10 +401,8 @@ class LyricReaderState extends State<LyricsReader>
     waitTimer = new Timer.periodic(Duration(milliseconds: 100), (timer) {
       waitSecond += 100;
       if (waitSecond == 400) {
-        realUpdateOffset(widget.model?.computeScroll(
-                lyricPaint.centerLyricIndex,
-                lyricPaint.playingIndex,
-                widget.ui) ??
+        realUpdateOffset(widget.model
+                ?.computeScroll(lyricPaint.centerLyricIndex, lyricPaint.playingIndex, widget.ui) ??
             0);
         return;
       }
@@ -454,13 +445,11 @@ class LyricReaderState extends State<LyricsReader>
   }
 
   ///计算span宽度
-  void setTextSpanDrawInfo(
-      LyricUI ui, List<LyricSpanInfo> spanList, TextPainter painter) {
+  void setTextSpanDrawInfo(LyricUI ui, List<LyricSpanInfo> spanList, TextPainter painter) {
     painter.textAlign = lyricPaint.lyricUI.getLyricTextAligin();
     spanList.forEach((element) {
       painter
-        ..text =
-            TextSpan(text: element.raw, style: ui.getPlayingMainTextStyle())
+        ..text = TextSpan(text: element.raw, style: ui.getPlayingMainTextStyle())
         ..layout();
       element.drawHeight = painter.height;
       element.drawWidth = painter.width;
@@ -482,8 +471,8 @@ class LyricReaderState extends State<LyricsReader>
     final spans = line.spanList ?? line.defaultSpanList;
     final blankTime = (line.startTime ?? 0) - widget.position;
     if (blankTime > 0) {
-      items.add(TweenSequenceItem(
-          tween: Tween(begin: 0.0, end: 0.0), weight: blankTime.toDouble()));
+      items
+          .add(TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.0), weight: blankTime.toDouble()));
     }
     for (LyricSpanInfo element in spans) {
       if (widget.position >= element.end) {
@@ -507,18 +496,16 @@ class LyricReaderState extends State<LyricsReader>
     }
     final highlightDuration = (line.endTime ?? 0) - widget.position;
     _highlightController = AnimationController(
-      duration:
-          Duration(milliseconds: highlightDuration > 0 ? highlightDuration : 0),
+      duration: Duration(milliseconds: highlightDuration > 0 ? highlightDuration : 0),
       vsync: this,
     );
-    var animate = TweenSequence(items)
-        .chain(CurveTween(curve: Curves.easeInOut))
-        .animate(_highlightController!)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          disposeHighlight();
-        }
-      });
+    var animate =
+        TweenSequence(items).chain(CurveTween(curve: Curves.linear)).animate(_highlightController!)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              disposeHighlight();
+            }
+          });
     animate.addListener(() {
       lyricPaint.highlightWidth = animate.value;
     });
