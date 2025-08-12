@@ -162,7 +162,8 @@ class LyricReaderState extends State<LyricsReader> with TickerProviderStateMixin
     /// 设置换行速度，减少文字抖动
     final offsetDiff = (offset - lyricPaint.lyricOffset).abs();
     if (offsetDiff < .1) return;
-    final milliseconds = (offsetDiff * 25).toInt();
+    var milliseconds = (offsetDiff * 25).toInt();
+    milliseconds = milliseconds > 300 ? 300 : milliseconds;
 
     _lineController = AnimationController(
       duration: Duration(milliseconds: milliseconds),
